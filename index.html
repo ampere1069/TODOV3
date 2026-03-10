@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+    <title>任務看板 · 代辦清單 · 2026.03.10</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f4fa 0%, #e9eef4 100%);
+            font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            color: #1a2b3c;
+        }
+
+        /* 玻璃科技感主容器 */
+        .board-container {
+            max-width: 1600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 48px 48px 36px 36px;
+            padding: 2rem 2rem 2.5rem 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* 看板標題區 — 大器、清晰 */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 2.2rem;
+            padding: 0 0.5rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #1f3a5f, #2b4c7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 4px 4px 12px rgba(0, 40, 80, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .dashboard-header h1 span {
+            font-size: 2.4rem;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0.3rem 1.2rem;
+            border-radius: 60px;
+            color: #1f3a5f;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+            font-weight: 600;
+        }
+
+        .date-badge {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: #1f2e44;
+            color: white;
+            padding: 0.6rem 2rem;
+            border-radius: 60px;
+            box-shadow: 0 8px 18px rgba(0, 20, 40, 0.3);
+            border: 1px solid #a0c0e0;
+            letter-spacing: 1px;
+        }
+
+        /* 四欄 grid — 大氣間距 */
+        .kanban-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.8rem;
+            margin-top: 0.8rem;
+        }
+
+        /* 每一欄 */
+        .column {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 1.5rem 1.2rem 1.8rem 1.2rem;
+            box-shadow: 0 20px 35px -10px rgba(0, 25, 50, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+            transition: transform 0.15s ease, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+        }
+
+        .column:hover {
+            box-shadow: 0 28px 40px -12px rgba(0, 45, 80, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* 欄位標題 — 大又粗 */
+        .column-header {
+            font-size: 2rem;
+            font-weight: 700;
+            padding: 0 0.5rem 1rem 0.5rem;
+            margin: 0 0 0.8rem 0;
+            border-bottom: 4px solid;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            letter-spacing: 0.5px;
+            color: #0b2a41;
+        }
+
+        .column-header .count {
+            background: #0b2a41;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            min-width: 2.8rem;
+            height: 2.8rem;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.2rem;
+            box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.2), 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 欄位標題內部排版 (圖示與上下兩行文字) */
+        .header-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-text-group {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .header-zh {
+            font-size: 1em;
+        }
+
+        .header-en {
+            font-size: 0.55em;
+            font-weight: 700;
+            opacity: 0.6;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* 各欄標題專屬色 — 低調科技藍綠紫金 */
+        .column:nth-child(1) .column-header { border-bottom-color: #2a6f97; }
+        .column:nth-child(1) .column-header .count { background: #2a6f97; }
+        .column:nth-child(2) .column-header { border-bottom-color: #e68a2e; }
+        .column:nth-child(2) .column-header .count { background: #c9741e; }
+        .column:nth-child(3) .column-header { border-bottom-color: #9b5fa0; }
+        .column:nth-child(3) .column-header .count { background: #7e4a83; }
+        .column:nth-child(4) .column-header { border-bottom-color: #2f8f6b; }
+        .column:nth-child(4) .column-header .count { background: #1f7253; }
+
+        /* 卡片容器——垂直間距 */
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        /* 卡片本體 — 黃色便條貼外型 (含右上角摺痕效果) */
+        .card {
+            background: linear-gradient(145deg, #fffca8 0%, #ffeb6b 100%);
+            border-radius: 2px 0 12px 2px; /* 右上角設為0，配合裁切 */
+            padding: 1.5rem 1.6rem;
+            font-size: 1.35rem;
+            font-weight: 600;
+            line-height: 1.55;
+            color: #2c2b1c;
+            border: none;
+            border-bottom: 2px solid rgba(200, 180, 50, 0.2);
+            transition: all 0.2s ease-out;
+            word-break: break-word;
+            white-space: normal;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            position: relative;
+            /* 改用 filter drop-shadow 產生整體陰影，讓裁切後的形狀陰影也正常顯示 */
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.12));
+            /* 裁切右上角，製造缺角效果 */
+            clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+        }
+
+        /* 增加便條貼右上角的立體摺痕 */
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 24px;
+            height: 24px;
+            /* 摺痕的顏色與漸層，營造光影立體感 */
+            background: linear-gradient(225deg, #fae67a 20%, #cca218 100%);
+            border-bottom-left-radius: 4px; /* 讓往下摺的尖角稍微圓潤 */
+            /* 摺痕本身投射在紙張上的陰影 */
+            box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease-out;
+        }
+
+        .card:hover {
+            filter: drop-shadow(4px 8px 12px rgba(0, 0, 0, 0.15));
+            background: linear-gradient(145deg, #ffffb8 0%, #ffef7c 100%);
+            transform: translateY(-4px) scale(1.02); /* 懸浮時放大 */
+            cursor: default;
+            z-index: 10;
+        }
+
+        .card:hover::after {
+            /* 懸浮時摺痕的顏色也跟著變亮 */
+            background: linear-gradient(225deg, #fef08a 20%, #dcb82e 100%);
+            box-shadow: -3px 3px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        /* 卡片內文字加大加粗 (已經繼承 .card 設定) 但可特別強調bullet */
+        .card::before {
+            content: "●";
+            color: #a89432; /* 配合便條貼的暗金色/棕色 */
+            font-size: 1.5rem;
+            margin-right: 4px;
+            font-weight: 400;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        /* 卡片內容區塊 (包裹文字，確保繼承粗體) */
+        .card-text {
+            flex: 1;
+        }
+
+        /* 微調最後一列 */
+        .column:last-child .card {
+            margin-bottom: 0;
+        }
+
+        /* 響應式 — 平板變兩欄，手機一欄 */
+        @media screen and (max-width: 1000px) {
+            .kanban-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .board-container {
+                padding: 1.5rem;
+            }
+            .dashboard-header h1 {
+                font-size: 2.6rem;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .kanban-grid {
+                grid-template-columns: 1fr;
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .date-badge {
+                font-size: 1.4rem;
+                padding: 0.4rem 1.5rem;
+            }
+            .column-header {
+                font-size: 1.8rem;
+            }
+            .card {
+                font-size: 1.3rem;
+                padding: 1.2rem 1.4rem;
+            }
+        }
+
+        /* 輔助微光 */
+        .glass-icon {
+            font-size: 1.8rem;
+            margin-right: 10px;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
+        }
+    </style>
+</head>
+<body>
+    <div class="board-container">
+        <!-- 標題列 符合大器/高齡友善，日期可依習慣調整，此處保留原樣或微調 -->
+        <div class="dashboard-header">
+            <h1>
+                <span>📋</span>任務看板
+            </h1>
+            <div class="date-badge">
+                📅 2026.03.11
+            </div>
+        </div>
+
+        <!-- 看板四欄位 使用grid · 內容已依20260310清單全面置換 -->
+        <div class="kanban-grid">
+
+            <!-- 欄1: TO DO (5項) -->
+            <div class="column">
+                <div class="column-header">
+                    <div class="header-title-container">
+                        <span class="glass-icon">📌</span>
+                        <div class="header-text-group">
+                            <span class="header-zh">待辦事項</span>
+                            <span class="header-en">TO DO</span>
+                        </div>
+                    </div>
+                    <span class="count">5</span>
+                </div>
+                <div class="card-list">
+                    <div class="card"><span class="card-text">公文須標明累積天數：日後若被迫調整或配合調整 CBS，對業主的主動發文中，務必明確標示「累積延遲天數」。</span></div>
+                    <div class="card"><span class="card-text">發文警告落後之下包商：針對進度落後的下包商，必須發文載明截至月底「累積的延遲天數」。這將作為後續下包商申請工期展延（EOT）時，我方據以倒扣天數的依據。</span></div>
+                    <div class="card"><span class="card-text">安排與總公司法務進行第一次線上會議。</span></div>
+                    <div class="card"><span class="card-text">正式稽核：預計三月下旬、四月上旬總公司法務進行正式稽核。</span></div>
+                    <div class="card"><span class="card-text">請求工期展延衍生費用相關資料：目前專案仍在彙整相關倉儲費用，人事費用等單據收集。</span></div>
+                </div>
+            </div>
+
+            <!-- 欄2: DOING (2項) -->
+            <div class="column">
+                <div class="column-header">
+                    <div class="header-title-container">
+                        <span class="glass-icon">⚙️</span>
+                        <div class="header-text-group">
+                            <span class="header-zh">進行中</span>
+                            <span class="header-en">In Progress</span>
+                        </div>
+                    </div>
+                    <span class="count">2</span>
+                </div>
+                <div class="card-list">
+                    <div class="card"><span class="card-text">整理給遠拓說明資料概況：已提送第二階段(高雄三個專案往來文件資料、工期展延相關往來文件等)，預計3/13回覆新鈳。</span></div>
+                    <div class="card"><span class="card-text">合約管理資料夾辦理情形：合約管理組、時程組持續彙整文件(資料上傳區)。合約經理逐一審閱內容(資料整理區)。</span></div>
+                </div>
+            </div>
+
+            <!-- 欄3: REVIEW (1項) -->
+            <div class="column">
+                <div class="column-header">
+                    <div class="header-title-container">
+                        <span class="glass-icon">🔍</span>
+                        <div class="header-text-group">
+                            <span class="header-zh">審查中</span>
+                            <span class="header-en">REVIEW</span>
+                        </div>
+                    </div>
+                    <span class="count">1</span>
+                </div>
+                <div class="card-list">
+                    <div class="card"><span class="card-text">內部審閱提供給遠拓之資料：合約管理組正進行內部審閱(持續更新專案往來文件、相關倉儲費用、人事費用等單據)，以確保資料正確。</span></div>
+                </div>
+            </div>
+
+            <!-- 欄4: DONE (2項) -->
+            <div class="column">
+                <div class="column-header">
+                    <div class="header-title-container">
+                        <span class="glass-icon">✅</span>
+                        <div class="header-text-group">
+                            <span class="header-zh">已完成</span>
+                            <span class="header-en">DONE</span>
+                        </div>
+                    </div>
+                    <span class="count">2</span>
+                </div>
+                <div class="card-list">
+                    <div class="card"><span class="card-text">第一階段(契約電子檔)、第二階段(專案往來文件整理資料)已給遠拓。</span></div>
+                    <div class="card"><span class="card-text">第一階段提供資料已給總公司法務審閱。</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部極簡科技感線條 (保留原樣) -->
+        <div style="margin-top: 2.5rem; text-align: right; opacity: 0.6; font-weight: 500; font-size: 1.2rem; color: #1a3857; border-top: 2px solid rgba(90, 140, 200, 0.3); padding-top: 1rem;">
+            <span style="background: rgba(255, 255, 255, 0.5); padding: 0.4rem 1.2rem; border-radius: 40px;">📄 工程處 | 合約管理組 | 品保部 跨部門協作</span>
+        </div>
+    </div>
+
+    <!-- 簡易互動提示 (雙擊變色) 保留 -->
+    <script>
+        (function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('dblclick', function(e) {
+                    this.style.backgroundColor = '#ffe135';
+                    setTimeout(() => this.style.backgroundColor = '', 200);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
